@@ -1,0 +1,10 @@
+apiVersion: 1
+
+providers:
+  - name: "Talhao Monitoring"
+    folder: "Agricultura"
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /etc/grafana/provisioning/dashboards

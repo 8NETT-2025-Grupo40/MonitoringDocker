@@ -1,0 +1,28 @@
+{
+  "title": "Monitoramento por Talhão",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Histórico de Sensores",
+      "targets": [
+        {
+          "query": "from(bucket: \"sensores\") |> range(start: -7d)"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Status do Talhão",
+      "options": {
+        "colorMode": "value",
+        "thresholds": {
+          "steps": [
+            { "color": "green", "value": 30 },
+            { "color": "yellow", "value": 20 },
+            { "color": "red", "value": 0 }
+          ]
+        }
+      }
+    }
+  ]
+}

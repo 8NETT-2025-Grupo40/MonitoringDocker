@@ -1,4 +1,6 @@
 {
+  "id": 1,
+  "uid": "talhao-monitoring",
   "title": "Monitoramento por Talhão",
   "panels": [
     {

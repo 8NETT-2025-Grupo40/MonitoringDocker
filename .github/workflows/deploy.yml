@@ -18,6 +18,61 @@ jobs:
           script: |
             set -e
             cd /opt/monitoring
-            git pull
+            git checkout main
+            git pull --ff-only
+            GRAFANA_URL="${{ vars.GRAFANA_URL }}"
+            COGNITO_DOMAIN="${{ vars.COGNITO_DOMAIN }}"
+            CLIENT_ID="${{ vars.CLIENT_ID }}"
+            COGNITO_CLIENT_SECRET="${{ secrets.COGNITO_CLIENT_SECRET }}"
+            GRAFANA_ADMIN_USER="${{ vars.GRAFANA_ADMIN_USER }}"
+            GRAFANA_ADMIN_PASSWORD="${{ secrets.GRAFANA_ADMIN_PASSWORD }}"
+            GRAFANA_COOKIE_SECURE="${{ vars.GRAFANA_COOKIE_SECURE }}"
+            GRAFANA_OAUTH_ENABLED="${{ vars.GRAFANA_OAUTH_ENABLED }}"
+            GRAFANA_OAUTH_NAME="${{ vars.GRAFANA_OAUTH_NAME }}"
+            GRAFANA_OAUTH_ALLOW_SIGN_UP="${{ vars.GRAFANA_OAUTH_ALLOW_SIGN_UP }}"
+            GRAFANA_OAUTH_USE_PKCE="${{ vars.GRAFANA_OAUTH_USE_PKCE }}"
+            COGNITO_SCOPES="${{ vars.COGNITO_SCOPES }}"
+
+            if [ -z "$GRAFANA_URL" ] || [ -z "$COGNITO_DOMAIN" ] || [ -z "$CLIENT_ID" ] || \
+               [ -z "$COGNITO_CLIENT_SECRET" ] || [ -z "$GRAFANA_ADMIN_USER" ] || [ -z "$GRAFANA_ADMIN_PASSWORD" ]; then
+              echo "Missing required environment variables."
+              echo "Create your local .env from .env.example and configure GitHub Actions Secrets/Variables."
+              exit 1
+            fi
+
+            if [ -z "$GRAFANA_COOKIE_SECURE" ]; then
+              GRAFANA_COOKIE_SECURE=true
+            fi
+            if [ -z "$GRAFANA_OAUTH_ENABLED" ]; then
+              GRAFANA_OAUTH_ENABLED=true
+            fi
+            if [ -z "$GRAFANA_OAUTH_NAME" ]; then
+              GRAFANA_OAUTH_NAME=Cognito
+            fi
+            if [ -z "$GRAFANA_OAUTH_ALLOW_SIGN_UP" ]; then
+              GRAFANA_OAUTH_ALLOW_SIGN_UP=true
+            fi
+            if [ -z "$GRAFANA_OAUTH_USE_PKCE" ]; then
+              GRAFANA_OAUTH_USE_PKCE=true
+            fi
+            if [ -z "$COGNITO_SCOPES" ]; then
+              COGNITO_SCOPES="openid email phone"
+            fi
+
+            cat > /opt/monitoring/.env <<EOF
+            GRAFANA_URL=$GRAFANA_URL
+            COGNITO_DOMAIN=$COGNITO_DOMAIN
+            CLIENT_ID=$CLIENT_ID
+            CLIENT_SECRET=$COGNITO_CLIENT_SECRET
+            GRAFANA_ADMIN_USER=$GRAFANA_ADMIN_USER
+            GRAFANA_ADMIN_PASSWORD=$GRAFANA_ADMIN_PASSWORD
+            GRAFANA_COOKIE_SECURE=$GRAFANA_COOKIE_SECURE
+            GRAFANA_OAUTH_ENABLED=$GRAFANA_OAUTH_ENABLED
+            GRAFANA_OAUTH_NAME=$GRAFANA_OAUTH_NAME
+            GRAFANA_OAUTH_ALLOW_SIGN_UP=$GRAFANA_OAUTH_ALLOW_SIGN_UP
+            GRAFANA_OAUTH_USE_PKCE=$GRAFANA_OAUTH_USE_PKCE
+            COGNITO_SCOPES=$COGNITO_SCOPES
+            GRAFANA_LOG_LEVEL=info
+            EOF
             docker compose pull
-            docker compose up -d --build
+            docker compose --env-file /opt/monitoring/.env up -d --build

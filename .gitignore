@@ -1,0 +1,8 @@
+# Environment variables (sensitive data)
+.env
+.env.local
+.env.*.local
+
+# Docker volumes (optional - if you want to ignore local data)
+# influxdb-data/
+# grafana-data/

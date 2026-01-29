@@ -1,0 +1,172 @@
+{
+  "id": 2,
+  "uid": "previsao-tempo",
+  "title": "Previsão do Tempo",
+  "time": {
+    "from": "now-6h",
+    "to": "now+24h"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "location",
+        "label": "Local",
+        "type": "custom",
+        "query": "São Paulo : latitude=-23.55&longitude=-46.63, Campinas : latitude=-22.90&longitude=-47.06, Ribeirão Preto : latitude=-21.17&longitude=-47.81",
+        "current": {
+          "text": "São Paulo",
+          "value": "latitude=-23.55&longitude=-46.63"
+        },
+        "hide": 0,
+        "skipUrlSync": false,
+        "options": []
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "Informações da previsão",
+      "description": "Resumo simples da previsão exibida.",
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 0 },
+      "options": {
+        "mode": "markdown",
+        "content": "| Item | Valor |\n| --- | --- |\n| Local | ${location:text} |\n| Período | de ${__from:date:DD/MM HH:mm} até ${__to:date:DD/MM HH:mm} |\n| Fonte | Open-Meteo |\n| Fuso | horário local da cidade |"
+      }
+    },
+    {
+      "id": 2,
+      "type": "table",
+      "title": "Resumo agora",
+      "description": "Leitura rápida das condições atuais e próximas.",
+      "gridPos": { "h": 4, "w": 16, "x": 8, "y": 0 },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "infinity-weather"
+      },
+      "targets": [
+        {
+          "columns": [
+            { "selector": "temperatura_agora", "text": "Temperatura agora (°C)", "type": "number" },
+            { "selector": "chuva_proxima_hora", "text": "Chance de chuva (próxima hora %)", "type": "number" },
+            { "selector": "vento_agora", "text": "Vento agora (km/h)", "type": "number" }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "infinity-weather"
+          },
+          "filters": [],
+          "format": "table",
+          "global_query_id": "",
+          "parser": "backend",
+          "refId": "A",
+          "root_selector": "$map([0], function($v){ { \"temperatura_agora\": current_weather.temperature, \"chuva_proxima_hora\": hourly.precipitation_probability[0], \"vento_agora\": current_weather.windspeed } })",
+          "source": "url",
+          "type": "json",
+          "url": "https://api.open-meteo.com/v1/forecast?${location}&current_weather=true&hourly=precipitation_probability&timezone=auto&timeformat=unixtime&forecast_hours=1",
+          "url_options": { "data": "", "method": "GET" }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Previsão: Temperatura (°C)",
+      "description": "Previsão horária de temperatura para a localização selecionada.",
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 4 },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "infinity-weather"
+      },
+      "targets": [
+        {
+          "columns": [
+            { "selector": "time", "text": "", "type": "timestamp_epoch" },
+            { "selector": "temperature_2m", "text": "Temperatura (°C)", "type": "number" }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "infinity-weather"
+          },
+          "filters": [],
+          "format": "timeseries",
+          "global_query_id": "",
+          "parser": "backend",
+          "refId": "A",
+          "root_selector": "$map(hourly.time, function($t, $i) { { \"time\": $t * 1000, \"temperature_2m\": hourly.temperature_2m[$i] } })",
+          "source": "url",
+          "type": "json",
+          "url": "https://api.open-meteo.com/v1/forecast?${location}&hourly=temperature_2m&timezone=auto&timeformat=unixtime",
+          "url_options": { "data": "", "method": "GET" }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Previsão: Chance de chuva (%)",
+      "description": "Probabilidade horária de precipitação para a localização selecionada.",
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 4 },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "infinity-weather"
+      },
+      "targets": [
+        {
+          "columns": [
+            { "selector": "time", "text": "", "type": "timestamp_epoch" },
+            { "selector": "precipitation_probability", "text": "Chance de chuva (%)", "type": "number" }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "infinity-weather"
+          },
+          "filters": [],
+          "format": "timeseries",
+          "global_query_id": "",
+          "parser": "backend",
+          "refId": "A",
+          "root_selector": "$map(hourly.time, function($t, $i) { { \"time\": $t * 1000, \"precipitation_probability\": hourly.precipitation_probability[$i] } })",
+          "source": "url",
+          "type": "json",
+          "url": "https://api.open-meteo.com/v1/forecast?${location}&hourly=precipitation_probability&timezone=auto&timeformat=unixtime",
+          "url_options": { "data": "", "method": "GET" }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Previsão: Vento (km/h)",
+      "description": "Velocidade horária do vento para a localização selecionada.",
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 4 },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "infinity-weather"
+      },
+      "targets": [
+        {
+          "columns": [
+            { "selector": "time", "text": "", "type": "timestamp_epoch" },
+            { "selector": "wind_speed_10m", "text": "Vento (km/h)", "type": "number" }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "infinity-weather"
+          },
+          "filters": [],
+          "format": "timeseries",
+          "global_query_id": "",
+          "parser": "backend",
+          "refId": "A",
+          "root_selector": "$map(hourly.time, function($t, $i) { { \"time\": $t * 1000, \"wind_speed_10m\": hourly.wind_speed_10m[$i] } })",
+          "source": "url",
+          "type": "json",
+          "url": "https://api.open-meteo.com/v1/forecast?${location}&hourly=wind_speed_10m&timezone=auto&timeformat=unixtime",
+          "url_options": { "data": "", "method": "GET" }
+        }
+      ]
+    }
+  ]
+}

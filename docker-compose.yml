@@ -52,15 +52,15 @@ services:
       GF_AUTH_GENERIC_OAUTH_SCOPES: ${COGNITO_SCOPES:-openid email phone}
 
       # Cognito Endpoints
-      GF_AUTH_GENERIC_OAUTH_AUTH_URL: ${COGNITO_DOMAIN:-https://us-east-26eo2tdlnq.auth.us-east-2.amazoncognito.com}/oauth2/authorize
-      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: ${COGNITO_DOMAIN:-https://us-east-26eo2tdlnq.auth.us-east-2.amazoncognito.com}/oauth2/token
-      GF_AUTH_GENERIC_OAUTH_API_URL: ${COGNITO_DOMAIN:-https://us-east-26eo2tdlnq.auth.us-east-2.amazoncognito.com}/oauth2/userInfo
+      GF_AUTH_GENERIC_OAUTH_AUTH_URL: ${COGNITO_DOMAIN:-https://us-east-11vgl4idf2.auth.us-east-1.amazoncognito.com}/oauth2/authorize
+      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: ${COGNITO_DOMAIN:-https://us-east-11vgl4idf2.auth.us-east-1.amazoncognito.com}/oauth2/token
+      GF_AUTH_GENERIC_OAUTH_API_URL: ${COGNITO_DOMAIN:-https://us-east-11vgl4idf2.auth.us-east-1.amazoncognito.com}/oauth2/userInfo
 
       # Email (obrigatório para signup no Grafana)
       GF_AUTH_GENERIC_OAUTH_EMAIL_ATTRIBUTE_PATH: email
 
       # Logout federado (Generic OAuth usa signout_redirect_url)
-      GF_AUTH_GENERIC_OAUTH_SIGNOUT_REDIRECT_URL: ${COGNITO_DOMAIN:-https://us-east-26eo2tdlnq.auth.us-east-2.amazoncognito.com}/logout?client_id=${CLIENT_ID:-}&logout_uri=${GRAFANA_URL:-http://localhost:3000}/
+      GF_AUTH_GENERIC_OAUTH_SIGNOUT_REDIRECT_URL: ${COGNITO_DOMAIN:-https://us-east-11vgl4idf2.auth.us-east-1.amazoncognito.com}/logout?client_id=${CLIENT_ID:-}&logout_uri=${GRAFANA_URL:-http://localhost:3000}/
 
       # Use PKCE (more secure for public clients like SPAs)
       GF_AUTH_GENERIC_OAUTH_USE_PKCE: "${GRAFANA_OAUTH_USE_PKCE:-true}"

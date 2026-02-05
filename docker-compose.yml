@@ -68,6 +68,10 @@ services:
       # ===== LOGGING =====
       GF_LOG_LEVEL: ${GRAFANA_LOG_LEVEL:-info}
 
+      # ===== UNIFIED ALERTING =====
+      GF_UNIFIED_ALERTING_ENABLED: "true"
+      GF_ALERTING_ENABLED: "false"
+
       # ===== PLUGINS =====
       GF_PLUGINS_PREINSTALL: yesoreyeram-infinity-datasource
       # Garante o plugin do Infinity em novas máquinas

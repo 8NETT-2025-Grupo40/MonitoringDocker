@@ -1,33 +1,313 @@
 {
   "id": 1,
   "uid": "talhao-monitoring",
-  "title": "Monitoramento por Talhão",
+  "title": "Monitoramento",
   "panels": [
     {
-      "id": 1,
-      "type": "timeseries",
-      "title": "Histórico de Sensores",
-      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 0 },
+      "id": 11,
+      "type": "stat",
+      "title": "Total Sensores",
+      "gridPos": { "h": 3, "w": 3, "x": 0, "y": 3 },
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
       "targets": [
         {
-          "query": "from(bucket: \"sensores\") |> range(start: -7d)"
+          "refId": "A",
+          "query": "from(bucket: \"sensores\")\n  |> range(start: -30d)\n  |> filter(fn: (r) => r._measurement == \"telemetry_readings\")\n  |> keep(columns: [\"sensorId\"])\n  |> distinct(column: \"sensorId\")\n  |> group()\n  |> count(column: \"sensorId\")"
         }
-      ]
-    },
-    {
-      "id": 2,
-      "type": "stat",
-      "title": "Status do Talhão",
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
+      ],
       "options": {
         "colorMode": "value",
-        "thresholds": {
-          "steps": [
-            { "color": "green", "value": 30 },
-            { "color": "yellow", "value": 20 },
-            { "color": "red", "value": 0 }
-          ]
+        "graphMode": "none",
+        "textMode": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          }
         }
+      }
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "Total Talhões",
+      "gridPos": { "h": 3, "w": 3, "x": 0, "y": 0 },
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"sensores\")\n  |> range(start: -30d)\n  |> filter(fn: (r) => r._measurement == \"telemetry_readings\")\n  |> keep(columns: [\"fieldId\"])\n  |> distinct(column: \"fieldId\")\n  |> group()\n  |> count(column: \"fieldId\")"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Alertas Ativos",
+      "gridPos": { "h": 3, "w": 3, "x": 3, "y": 0 },
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"sensores\")\n  |> range(start: -30d)\n  |> filter(fn: (r) => r._measurement == \"field_alerts\")\n  |> group(columns: [\"fieldId\", \"alertType\", \"_field\"])\n  |> last()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => r.active == 1)\n  |> group()\n  |> count(column: \"active\")"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 6 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Alertas Críticos",
+      "gridPos": { "h": 3, "w": 3, "x": 3, "y": 3 },
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"sensores\")\n  |> range(start: -30d)\n  |> filter(fn: (r) => r._measurement == \"field_alerts\")\n  |> group(columns: [\"fieldId\", \"alertType\", \"_field\"])\n  |> last()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => r.active == 1 and r.severity >= 3)\n  |> group()\n  |> count(column: \"active\")"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "alertlist",
+      "title": "Alertas do Sistema",
+      "gridPos": { "h": 6, "w": 18, "x": 6, "y": 0 },
+      "options": {
+        "alertInstanceLabelFilter": "",
+        "alertName": "",
+        "dashboardAlerts": false,
+        "folder": { "id": null, "title": "Agricultura" },
+        "groupBy": [],
+        "groupMode": "default",
+        "maxItems": 10,
+        "sortOrder": 1,
+        "stateFilter": { "firing": true, "pending": true, "noData": false, "normal": false, "error": true },
+        "viewMode": "list"
+      }
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Visão Geral por Talhão",
+      "description": "Status geral de cada talhão: Normal, Alerta de Seca, Risco de Geada, etc.",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 6 },
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "import \"join\"\n\ntalhoes = from(bucket: \"sensores\")\n  |> range(start: -30d)\n  |> filter(fn: (r) => r._measurement == \"telemetry_readings\")\n  |> keep(columns: [\"fieldId\"])\n  |> distinct(column: \"fieldId\")\n  |> group()\n\nalertas = from(bucket: \"sensores\")\n  |> range(start: -30d)\n  |> filter(fn: (r) => r._measurement == \"field_alerts\")\n  |> group(columns: [\"fieldId\", \"alertType\", \"_field\"])\n  |> last()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => r.active == 1)\n  |> keep(columns: [\"fieldId\", \"alertType\", \"severity\"])\n  |> group()\n\njoin.left(left: talhoes, right: alertas, on: (l, r) => l.fieldId == r.fieldId, as: (l, r) => ({\n  fieldId: l.fieldId,\n  status: if exists r.alertType then r.alertType else \"Normal\",\n  severity: if exists r.severity then r.severity else 0\n}))\n  |> sort(columns: [\"severity\"], desc: true)"
+        }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "fieldId" },
+            "properties": [{ "id": "displayName", "value": "Talhão" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "status" },
+            "properties": [{ "id": "displayName", "value": "Status" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "severity" },
+            "properties": [{ "id": "displayName", "value": "Severidade" }]
+          }
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "Alertas Ativos (Detalhes)",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 12 },
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"sensores\")\n  |> range(start: -30d)\n  |> filter(fn: (r) => r._measurement == \"field_alerts\")\n  |> group(columns: [\"fieldId\", \"alertType\", \"_field\"])\n  |> last()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => r.active == 1)\n  |> keep(columns: [\"_time\", \"fieldId\", \"farmId\", \"alertType\", \"status\", \"severity\", \"reason\"])\n  |> group()\n  |> sort(columns: [\"_time\"], desc: true)"
+        }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "_time" },
+            "properties": [{ "id": "displayName", "value": "Data/Hora" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "fieldId" },
+            "properties": [{ "id": "displayName", "value": "Talhão" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "alertType" },
+            "properties": [{ "id": "displayName", "value": "Tipo" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "severity" },
+            "properties": [{ "id": "displayName", "value": "Severidade" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "reason" },
+            "properties": [{ "id": "displayName", "value": "Motivo" }]
+          }
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Histórico - Solo",
+      "description": "Média de todos os sensores de solo",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 18 },
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"sensores\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"telemetry_readings\")\n  |> filter(fn: (r) => r._field == \"soilHumidity\" or r._field == \"soilTemperature\")\n  |> group(columns: [\"_field\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "showPoints": "auto",
+            "lineWidth": 2
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": "/soilHumidity/" },
+            "properties": [
+              { "id": "displayName", "value": "Umidade do Solo (%)" },
+              { "id": "unit", "value": "percent" },
+              { "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": "/soilTemperature/" },
+            "properties": [
+              { "id": "displayName", "value": "Temperatura do Solo (C)" },
+              { "id": "unit", "value": "celsius" },
+              { "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } },
+              { "id": "custom.axisPlacement", "value": "right" }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      }
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Histórico - Clima",
+      "description": "Média de todos os sensores climáticos",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 26 },
+      "datasource": { "type": "influxdb", "uid": "influxdb" },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"sensores\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"telemetry_readings\")\n  |> filter(fn: (r) => r._field == \"rainMm\" or r._field == \"airTemperature\" or r._field == \"airHumidity\")\n  |> group(columns: [\"_field\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "showPoints": "auto",
+            "lineWidth": 2
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": "/rainMm/" },
+            "properties": [
+              { "id": "displayName", "value": "Chuva (mm)" },
+              { "id": "unit", "value": "lengthmm" },
+              { "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } },
+              { "id": "custom.drawStyle", "value": "bars" }
+            ]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": "/airTemperature/" },
+            "properties": [
+              { "id": "displayName", "value": "Temperatura do Ar (C)" },
+              { "id": "unit", "value": "celsius" },
+              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } },
+              { "id": "custom.axisPlacement", "value": "right" }
+            ]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": "/airHumidity/" },
+            "properties": [
+              { "id": "displayName", "value": "Umidade do Ar (%)" },
+              { "id": "unit", "value": "percent" },
+              { "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" }
       }
     }
   ]

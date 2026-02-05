@@ -1,0 +1,153 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: Field_Alerts_Monitor
+    folder: Agricultura
+    interval: 1m
+    rules:
+      # Regra 1: Qualquer alerta de campo ativo (não resolvido)
+      - uid: field-alerts-any
+        title: "Alertas de Campo Ativos"
+        condition: C
+        data:
+          # Query A - Conta alertas ativos no InfluxDB
+          - refId: A
+            relativeTimeRange:
+              from: 2592000  # 30 dias em segundos
+              to: 0
+            datasourceUid: influxdb
+            model:
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+              query: |
+                from(bucket: "sensores")
+                  |> range(start: -30d)
+                  |> filter(fn: (r) => r._measurement == "field_alerts")
+                  |> group(columns: ["fieldId", "alertType", "_field"])
+                  |> last()
+                  |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+                  |> filter(fn: (r) => r.active == 1)
+                  |> group()
+                  |> count(column: "active")
+                  |> yield(name: "count")
+
+          # Reduce - Obtém o valor da contagem
+          - refId: B
+            relativeTimeRange:
+              from: 2592000
+              to: 0
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+              settings:
+                mode: dropNN
+
+          # Threshold - Dispara se count > 0
+          - refId: C
+            relativeTimeRange:
+              from: 2592000
+              to: 0
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+                  operator:
+                    type: and
+
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        annotations:
+          summary: "Existem alertas de campo ativos no sistema"
+          description: |
+            Quantidade de alertas ativos: {{ $values.B }}
+            Verifique o dashboard de Monitoramento para detalhes.
+        labels:
+          severity: warning
+          type: agricultura
+          source: field_alerts
+        isPaused: false
+
+      # Regra 2: Alertas críticos (severity >= 3)
+      - uid: field-alerts-critical
+        title: "Alertas Críticos de Campo"
+        condition: C
+        data:
+          # Query A - Conta alertas críticos ativos
+          - refId: A
+            relativeTimeRange:
+              from: 2592000
+              to: 0
+            datasourceUid: influxdb
+            model:
+              refId: A
+              intervalMs: 60000
+              maxDataPoints: 43200
+              query: |
+                from(bucket: "sensores")
+                  |> range(start: -30d)
+                  |> filter(fn: (r) => r._measurement == "field_alerts")
+                  |> group(columns: ["fieldId", "alertType", "_field"])
+                  |> last()
+                  |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+                  |> filter(fn: (r) => r.active == 1 and r.severity >= 3)
+                  |> group()
+                  |> count(column: "active")
+                  |> yield(name: "count")
+
+          # Reduce
+          - refId: B
+            relativeTimeRange:
+              from: 2592000
+              to: 0
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+              settings:
+                mode: dropNN
+
+          # Threshold
+          - refId: C
+            relativeTimeRange:
+              from: 2592000
+              to: 0
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+                  operator:
+                    type: and
+
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        annotations:
+          summary: "CRÍTICO: Existem alertas de alta severidade ativos"
+          description: |
+            Quantidade de alertas críticos: {{ $values.B }}
+            Ação imediata necessária! Verifique o dashboard de Monitoramento.
+        labels:
+          severity: critical
+          type: agricultura
+          source: field_alerts
+        isPaused: false

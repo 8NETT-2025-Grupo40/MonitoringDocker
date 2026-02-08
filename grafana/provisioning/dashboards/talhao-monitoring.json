@@ -168,7 +168,21 @@
             "properties": [{ "id": "displayName", "value": "Severidade" }]
           }
         ]
-      }
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {
+              "fieldId": 0,
+              "status": 1,
+              "severity": 2
+            },
+            "renameByName": {}
+          }
+        }
+      ]
     },
     {
       "id": 6,

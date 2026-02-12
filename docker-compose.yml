@@ -15,14 +15,6 @@ services:
       DOCKER_INFLUXDB_INIT_BUCKET: sensores
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: influx-token
 
-  prometheus:
-    image: prom/prometheus:v2.48.0
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-
   grafana:
     image: grafana/grafana:10.4.8
     container_name: grafana
@@ -82,7 +74,6 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning
     depends_on:
       - influxdb
-      - prometheus
 
 volumes:
   influxdb-data:

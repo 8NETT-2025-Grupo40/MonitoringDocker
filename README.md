@@ -28,7 +28,6 @@ senha: admin123
 
 ## Arquitetura rápida
 - Grafana (10.4.8)
-- Prometheus (v2.48.0)
 - InfluxDB (2.7)
 - Plugin Infinity instalado via `GF_INSTALL_PLUGINS`
 
